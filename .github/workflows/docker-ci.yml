@@ -1,0 +1,58 @@
+name: Docker CI
+
+on:
+  push:
+    branches:
+      - main
+      - feature-docker-ci
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  docker-build:
+    name: Build and Test Docker Image
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+
+      - name: Build Docker image
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          push: false
+          load: true
+          tags: devops-live-api-dashboard:ci
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Start test container
+        run: |
+          docker run -d \
+            --name live-api-dashboard-ci \
+            -p 8090:8090 \
+            devops-live-api-dashboard:ci
+
+      - name: Verify container health endpoint
+        run: |
+          for attempt in {1..12}; do
+            if curl --fail http://127.0.0.1:8090/health; then
+              echo "Container health check passed"
+              exit 0
+            fi
+
+            echo "Waiting for container: attempt ${attempt}/12"
+            sleep 5
+          done
+
+          echo "Container did not become healthy"
+          docker logs live-api-dashboard-ci
+          exit 1
