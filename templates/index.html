@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>DevOps Live API Dashboard</title>
+
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+
+<body>
+    <header class="hero">
+        <p class="eyebrow">LIVE INTEGRATION PROJECT</p>
+        <h1>DevOps Live API Dashboard</h1>
+        <p>
+            A Python and Flask dashboard connecting DevOps,
+            weather, country, currency and space APIs.
+        </p>
+
+        <div class="health-panel">
+            <span class="status-dot"></span>
+            <span>Dashboard is running on port 8090</span>
+        </div>
+    </header>
+
+    <main class="dashboard-grid">
+
+        <section class="api-card">
+            <div class="card-icon">⚙️</div>
+            <h2>GitHub Actions</h2>
+            <p>Check the latest CI/CD workflow status.</p>
+
+            <button data-api="github">
+                Check Workflow
+            </button>
+
+            <div id="github-result" class="result">
+                Click the button to load workflow status.
+            </div>
+        </section>
+
+        <section class="api-card">
+            <div class="card-icon">🌦️</div>
+            <h2>Live Weather</h2>
+            <p>Get current weather using Open-Meteo.</p>
+
+            <input
+                id="weather-city"
+                type="text"
+                value="Nagpur"
+                placeholder="Enter city"
+            >
+
+            <button data-api="weather">
+                Check Weather
+            </button>
+
+            <div id="weather-result" class="result">
+                Enter a city to view live weather.
+            </div>
+        </section>
+
+        <section class="api-card">
+            <div class="card-icon">🌍</div>
+            <h2>Country Information</h2>
+            <p>View capital, population, currency and flag.</p>
+
+            <input
+                id="country-name"
+                type="text"
+                value="India"
+                placeholder="Enter country"
+            >
+
+            <button data-api="country">
+                Explore Country
+            </button>
+
+            <div id="country-result" class="result">
+                Enter a country to view information.
+            </div>
+        </section>
+
+        <section class="api-card">
+            <div class="card-icon">💱</div>
+            <h2>Currency Converter</h2>
+            <p>Check current exchange rates with Frankfurter.</p>
+
+            <div class="input-row">
+                <input
+                    id="currency-amount"
+                    type="number"
+                    value="1"
+                    min="0"
+                    step="0.01"
+                    placeholder="Amount"
+                >
+
+                <select id="currency-from">
+                    <option value="USD">USD</option>
+                    <option value="EUR">EUR</option>
+                    <option value="GBP">GBP</option>
+                    <option value="INR">INR</option>
+                    <option value="JPY">JPY</option>
+                </select>
+
+                <select id="currency-to">
+                    <option value="INR">INR</option>
+                    <option value="USD">USD</option>
+                    <option value="EUR">EUR</option>
+                    <option value="GBP">GBP</option>
+                    <option value="JPY">JPY</option>
+                </select>
+            </div>
+
+            <button data-api="currency">
+                Convert Currency
+            </button>
+
+            <div id="currency-result" class="result">
+                Select currencies and enter an amount.
+            </div>
+        </section>
+
+<section class="api-card">
+    <div class="card-icon">🌫️</div>
+
+    <h2>Air Quality & UV Safety</h2>
+
+    <p>
+        Check live AQI, pollution levels and outdoor safety advice.
+    </p>
+
+    <input
+        id="air-city"
+        type="text"
+        value="Nagpur"
+        placeholder="Enter city"
+    >
+
+    <button data-api="air-quality">
+        Check Air Quality
+    </button>
+
+    <div id="air-quality-result" class="result">
+        Enter a city to check air quality and UV safety.
+    </div>
+</section>
+
+        <section class="api-card nasa-card">
+            <div class="card-icon">🚀</div>
+            <h2>NASA Astronomy Picture</h2>
+            <p>Discover NASA's Astronomy Picture of the Day.</p>
+
+            <button data-api="nasa">
+                Explore Space
+            </button>
+
+            <div id="nasa-result" class="result">
+                Click the button to retrieve NASA space data.
+            </div>
+        </section>
+
+    </main>
+
+    <footer>
+        <p>
+            Built by Pankaj as part of the DevOps learning journey.
+        </p>
+        <p>
+            Flask · APIs · Testing · Docker · CI/CD
+        </p>
+    </footer>
+
+    <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+</body>
+</html>
