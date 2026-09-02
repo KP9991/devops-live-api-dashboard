@@ -1,0 +1,35 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: live-api-dashboard
+  labels:
+    app: live-api-dashboard
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: live-api-dashboard
+  template:
+    metadata:
+      labels:
+        app: live-api-dashboard
+    spec:
+      containers:
+        - name: devops-live-api-dashboard
+          image: ghcr.io/kp9991/devops-live-api-dashboard:latest
+          imagePullPolicy: Always
+          ports:
+            - name: http
+              containerPort: 8090
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8090
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8090
+            initialDelaySeconds: 15
+            periodSeconds: 20
