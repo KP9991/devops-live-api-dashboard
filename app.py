@@ -1,3 +1,5 @@
+import html
+import random
 import os
 from datetime import datetime, timezone
 from urllib.parse import quote
@@ -465,6 +467,94 @@ def air_quality():
             error=f"Air-quality API connection failed: {error}"
         ), 502
 
+@app.route("/api/trivia")
+def trivia():
+    category = request.args.get("category", "mixed").strip().lower()
+
+    categories = {
+        "film": 11,
+        "music": 12,
+        "television": 14,
+        "video-games": 15,
+        "board-games": 16,
+        "comics": 29,
+        "anime": 31,
+        "cartoons": 32,
+    }
+
+    if category != "mixed" and category not in categories:
+        return api_error(
+            "Invalid trivia category.",
+            400,
+        )
+
+    params = {
+        "amount": 5,
+        "type": "multiple",
+    }
+
+    if category != "mixed":
+        params["category"] = categories[category]
+
+    try:
+        response = requests.get(
+            "https://opentdb.com/api.php",
+            params=params,
+            timeout=REQUEST_TIMEOUT,
+        )
+        response.raise_for_status()
+        payload = response.json()
+    except requests.RequestException:
+        return api_error(
+            "The trivia service is currently unavailable.",
+            502,
+        )
+    except ValueError:
+        return api_error(
+            "The trivia service returned an invalid response.",
+            502,
+        )
+
+    if payload.get("response_code") != 0:
+        return api_error(
+            "Trivia questions were not available. Please try again.",
+            502,
+        )
+
+    questions = []
+
+    for item in payload.get("results", []):
+        correct_answer = html.unescape(item.get("correct_answer", ""))
+
+        answers = [
+            html.unescape(answer)
+            for answer in item.get("incorrect_answers", [])
+        ]
+        answers.append(correct_answer)
+        random.shuffle(answers)
+
+        questions.append(
+            {
+                "category": html.unescape(item.get("category", "")),
+                "difficulty": item.get("difficulty", "").title(),
+                "question": html.unescape(item.get("question", "")),
+                "answers": answers,
+                "correct_answer": correct_answer,
+            }
+        )
+
+    if not questions:
+        return api_error(
+            "No trivia questions were returned.",
+            502,
+        )
+
+    return jsonify(
+        status="success",
+        selected_category=category,
+        count=len(questions),
+        questions=questions,
+    )
 if __name__ == "__main__":
     app.run(
         host="0.0.0.0",

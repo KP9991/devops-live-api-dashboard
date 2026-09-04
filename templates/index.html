@@ -162,6 +162,44 @@
                 Click the button to retrieve NASA space data.
             </div>
         </section>
+<section class="api-card trivia-card">
+    <div class="card-icon">🎭</div>
+
+    <h2>Entertainment Trivia Challenge</h2>
+
+    <p>
+        Test your knowledge with five multiple-choice entertainment
+        questions.
+    </p>
+
+    <label for="trivia-category">
+        Choose a category
+    </label>
+
+    <select id="trivia-category">
+        <option value="mixed">Mixed Entertainment</option>
+        <option value="film">Film</option>
+        <option value="television">Television</option>
+        <option value="music">Music</option>
+        <option value="video-games">Video Games</option>
+        <option value="board-games">Board Games</option>
+        <option value="comics">Comics</option>
+        <option value="anime">Anime and Manga</option>
+        <option value="cartoons">Cartoons and Animation</option>
+    </select>
+
+    <button
+        id="trivia-start-button"
+        data-api="trivia"
+        type="button"
+    >
+        Start Quiz
+    </button>
+
+    <div id="trivia-result" class="result">
+        Select a category and start the quiz.
+    </div>
+</section>
 
     </main>
 

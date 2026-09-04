@@ -339,6 +339,152 @@ async function loadAirQuality(button) {
         finishLoading(button);
     }
 }
+let triviaQuestions = [];
+let triviaQuestionIndex = 0;
+let triviaScore = 0;
+
+function showTriviaResults() {
+    const result = document.getElementById("trivia-result");
+
+    result.className = "result success";
+    result.innerHTML = "";
+
+    const title = document.createElement("div");
+    title.className = "result-title";
+    title.textContent = "Quiz Completed!";
+
+    const score = document.createElement("p");
+    score.className = "trivia-final-score";
+    score.textContent =
+        `Your score: ${triviaScore}/${triviaQuestions.length}`;
+
+    const message = document.createElement("p");
+
+    if (triviaScore === triviaQuestions.length) {
+        message.textContent = "Perfect score! Excellent work.";
+    } else if (triviaScore >= 3) {
+        message.textContent = "Great attempt! You know your entertainment.";
+    } else {
+        message.textContent = "Good try! Play again and improve your score.";
+    }
+
+    const restartButton = document.createElement("button");
+    restartButton.type = "button";
+    restartButton.className = "trivia-next-button";
+    restartButton.textContent = "Play Again";
+    restartButton.addEventListener("click", () => {
+        document.getElementById("trivia-start-button").click();
+    });
+
+    result.append(title, score, message, restartButton);
+}
+
+function showTriviaQuestion() {
+    if (triviaQuestionIndex >= triviaQuestions.length) {
+        showTriviaResults();
+        return;
+    }
+
+    const result = document.getElementById("trivia-result");
+    const item = triviaQuestions[triviaQuestionIndex];
+
+    result.className = "result trivia-active";
+    result.innerHTML = "";
+
+    const progress = document.createElement("p");
+    progress.className = "trivia-progress";
+    progress.textContent =
+        `Question ${triviaQuestionIndex + 1} of ${triviaQuestions.length}` +
+        ` • Score: ${triviaScore}`;
+
+    const metadata = document.createElement("p");
+    metadata.className = "trivia-metadata";
+    metadata.textContent =
+        `${item.category} • Difficulty: ${item.difficulty}`;
+
+    const question = document.createElement("h3");
+    question.className = "trivia-question";
+    question.textContent = item.question;
+
+    const answers = document.createElement("div");
+    answers.className = "trivia-answers";
+
+    item.answers.forEach((answer) => {
+        const answerButton = document.createElement("button");
+        answerButton.type = "button";
+        answerButton.className = "trivia-answer";
+        answerButton.textContent = answer;
+
+        answerButton.addEventListener("click", () => {
+            const answerButtons =
+                answers.querySelectorAll(".trivia-answer");
+
+            answerButtons.forEach((currentButton) => {
+                currentButton.disabled = true;
+
+                if (currentButton.textContent === item.correct_answer) {
+                    currentButton.classList.add("correct-answer");
+                }
+            });
+
+            const feedback = document.createElement("p");
+            feedback.className = "trivia-feedback";
+
+            if (answer === item.correct_answer) {
+                triviaScore += 1;
+                answerButton.classList.add("correct-answer");
+                feedback.textContent = "Correct answer!";
+            } else {
+                answerButton.classList.add("wrong-answer");
+                feedback.textContent =
+                    `Incorrect. Correct answer: ${item.correct_answer}`;
+            }
+
+            const nextButton = document.createElement("button");
+            nextButton.type = "button";
+            nextButton.className = "trivia-next-button";
+            nextButton.textContent =
+                triviaQuestionIndex === triviaQuestions.length - 1
+                    ? "See Results"
+                    : "Next Question";
+
+            nextButton.addEventListener("click", () => {
+                triviaQuestionIndex += 1;
+                showTriviaQuestion();
+            });
+
+            result.append(feedback, nextButton);
+        });
+
+        answers.appendChild(answerButton);
+    });
+
+    result.append(progress, metadata, question, answers);
+}
+
+async function loadTrivia(button) {
+    const result = document.getElementById("trivia-result");
+    const category =
+        document.getElementById("trivia-category").value;
+
+    setLoading(button, result);
+
+    try {
+        const data = await getJson(
+            `/api/trivia?category=${encodeURIComponent(category)}`
+        );
+
+        triviaQuestions = data.questions;
+        triviaQuestionIndex = 0;
+        triviaScore = 0;
+
+        showTriviaQuestion();
+    } catch (error) {
+        showError(result, error.message);
+    } finally {
+        finishLoading(button);
+    }
+}
 buttons.forEach((button) => {
     button.addEventListener("click", () => {
         const api = button.dataset.api;
@@ -353,6 +499,8 @@ buttons.forEach((button) => {
             loadCurrency(button);
 } else if (api === "air-quality") {
     loadAirQuality(button);
+} else if (api === "trivia") {
+    loadTrivia(button);
 } else if (api === "nasa") {
     loadNasa(button);
 }
