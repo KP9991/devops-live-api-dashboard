@@ -1,5 +1,7 @@
 const buttons = document.querySelectorAll("button[data-api]");
-
+let aiTriviaQuestions = [];
+let aiTriviaIndex = 0;
+let aiTriviaScore = 0;
 
 function setLoading(button, resultElement) {
     button.disabled = true;
@@ -419,6 +421,7 @@ function showTriviaQuestion() {
             const answerButtons =
                 answers.querySelectorAll(".trivia-answer");
 
+
             answerButtons.forEach((currentButton) => {
                 currentButton.disabled = true;
 
@@ -485,6 +488,209 @@ async function loadTrivia(button) {
         finishLoading(button);
     }
 }
+
+function showAITriviaResult() {
+    const result = document.getElementById("ai-trivia-result");
+    const totalQuestions = aiTriviaQuestions.length;
+    const percentage = Math.round(
+        (aiTriviaScore / totalQuestions) * 100
+    );
+
+    result.replaceChildren();
+    result.className = "result success";
+
+    const heading = document.createElement("h3");
+    heading.className = "ai-trivia-final-title";
+    heading.textContent = "Quiz Completed! / क्विज़ पूर्ण!";
+    result.appendChild(heading);
+
+    const score = document.createElement("p");
+    score.className = "ai-trivia-final-score";
+    score.textContent =
+        `Your score: ${aiTriviaScore}/${totalQuestions} (${percentage}%)`;
+    result.appendChild(score);
+
+    const message = document.createElement("p");
+
+    if (percentage >= 80) {
+        message.textContent =
+            "Excellent work! / बहुत बढ़िया!";
+    } else if (percentage >= 50) {
+        message.textContent =
+            "Good effort! Keep learning. / अच्छा प्रयास!";
+    } else {
+        message.textContent =
+            "Keep practising—you will improve! / अभ्यास जारी रखें!";
+    }
+
+    result.appendChild(message);
+
+    const playAgainButton = document.createElement("button");
+    playAgainButton.type = "button";
+    playAgainButton.className = "ai-trivia-next";
+    playAgainButton.textContent = "Generate Another Quiz";
+
+    playAgainButton.addEventListener("click", () => {
+        document
+            .getElementById("ai-trivia-start-button")
+            .click();
+    });
+
+    result.appendChild(playAgainButton);
+}
+function selectAITriviaAnswer(selectedIndex) {
+    const question = aiTriviaQuestions[aiTriviaIndex];
+    const result = document.getElementById("ai-trivia-result");
+    const answerButtons = result.querySelectorAll(
+        ".ai-trivia-answer"
+    );
+    const correctIndex = Number(question.correct_index);
+
+    answerButtons.forEach((answerButton, index) => {
+        answerButton.disabled = true;
+
+        if (index === correctIndex) {
+            answerButton.classList.add("correct");
+        } else if (index === selectedIndex) {
+            answerButton.classList.add("wrong");
+        }
+    });
+
+    if (selectedIndex === correctIndex) {
+        aiTriviaScore += 1;
+    }
+
+    const explanation = document.createElement("div");
+    explanation.className = "ai-trivia-explanation";
+
+    const explanationEnglish =
+        question.explanation_en || "No explanation available.";
+    const explanationHindi =
+        question.explanation_hi || "";
+
+    explanation.textContent =
+        `${explanationEnglish}\n${explanationHindi}`;
+    result.appendChild(explanation);
+
+    const nextButton = document.createElement("button");
+    nextButton.type = "button";
+    nextButton.className = "ai-trivia-next";
+
+    const isLastQuestion =
+        aiTriviaIndex === aiTriviaQuestions.length - 1;
+
+    nextButton.textContent = isLastQuestion
+        ? "View Final Score"
+        : "Next Question";
+
+    nextButton.addEventListener("click", () => {
+        if (isLastQuestion) {
+            showAITriviaResult();
+        } else {
+            aiTriviaIndex += 1;
+            renderAITriviaQuestion();
+        }
+    });
+
+    result.appendChild(nextButton);
+}
+function renderAITriviaQuestion() {
+    const result = document.getElementById("ai-trivia-result");
+    const question = aiTriviaQuestions[aiTriviaIndex];
+
+    result.replaceChildren();
+    result.className = "result success";
+
+    const progress = document.createElement("p");
+    progress.className = "ai-trivia-progress";
+    progress.textContent =
+        `Question ${aiTriviaIndex + 1} of ${aiTriviaQuestions.length}` +
+        ` | Score: ${aiTriviaScore}`;
+    result.appendChild(progress);
+
+    const title = document.createElement("h3");
+    title.className = "ai-trivia-question";
+    title.textContent =
+        `${question.question_en}\n${question.question_hi}`;
+    result.appendChild(title);
+
+    const optionsContainer = document.createElement("div");
+    optionsContainer.className = "ai-trivia-options";
+
+    question.options_en.forEach((optionEnglish, index) => {
+        const optionButton = document.createElement("button");
+        optionButton.type = "button";
+        optionButton.className = "ai-trivia-answer";
+
+        const optionHindi = question.options_hi[index] || "";
+        optionButton.textContent =
+            `${index + 1}. ${optionEnglish}\n${optionHindi}`;
+
+        optionButton.addEventListener("click", () => {
+            selectAITriviaAnswer(index);
+        });
+
+        optionsContainer.appendChild(optionButton);
+    });
+
+    result.appendChild(optionsContainer);
+}
+async function loadAITrivia(button) {
+    const result = document.getElementById("ai-trivia-result");
+    const topic = document
+        .getElementById("ai-trivia-topic")
+        .value
+        .trim();
+    const difficulty = document.getElementById(
+        "ai-trivia-difficulty"
+    ).value;
+    const count = Number(
+        document.getElementById("ai-trivia-count").value
+    );
+
+    if (!topic) {
+        showError(result, "Please enter a quiz topic.");
+        return;
+    }
+
+    setLoading(button, result);
+
+    try {
+        const response = await fetch("/api/ai-trivia", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+                topic: topic,
+                difficulty: difficulty,
+                count: count,
+            }),
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(
+                data.message || "Unable to generate the AI quiz."
+            );
+        }
+
+        aiTriviaQuestions = data.questions || [];
+        aiTriviaIndex = 0;
+        aiTriviaScore = 0;
+
+        if (aiTriviaQuestions.length === 0) {
+            throw new Error("Gemini returned no quiz questions.");
+        }
+
+        renderAITriviaQuestion();
+    } catch (error) {
+        showError(result, error.message);
+    } finally {
+        finishLoading(button);
+    }
+}
 buttons.forEach((button) => {
     button.addEventListener("click", () => {
         const api = button.dataset.api;
@@ -497,12 +703,14 @@ buttons.forEach((button) => {
             loadCountry(button);
         } else if (api === "currency") {
             loadCurrency(button);
-} else if (api === "air-quality") {
-    loadAirQuality(button);
-} else if (api === "trivia") {
-    loadTrivia(button);
-} else if (api === "nasa") {
-    loadNasa(button);
-}
+        } else if (api === "air-quality") {
+            loadAirQuality(button);
+        } else if (api === "trivia") {
+            loadTrivia(button);
+        } else if (api === "nasa") {
+            loadNasa(button);
+        } else if (api === "ai-trivia") {
+            loadAITrivia(button);
+        }
     });
 });

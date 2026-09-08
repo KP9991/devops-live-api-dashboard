@@ -6,6 +6,8 @@ The project was created as part of my hands-on DevOps learning journey, covering
 
 ## Features
 
+- AI-generated bilingual quizzes in English and Hindi
+- Custom quiz topics, difficulty levels and question counts
 - GitHub Actions workflow monitoring
 - Live weather information
 - Country information and flags
@@ -20,6 +22,8 @@ The project was created as part of my hands-on DevOps learning journey, covering
 
 ## Technology Stack
 
+- Google Gen AI SDK
+- Pydantic
 - Python
 - Flask
 - HTML5
@@ -34,6 +38,7 @@ The project was created as part of my hands-on DevOps learning journey, covering
 
 ## Public APIs
 
+- Google Gemini API
 - GitHub REST API
 - Open-Meteo Weather API
 - Open-Meteo Air Quality API
@@ -41,6 +46,17 @@ The project was created as part of my hands-on DevOps learning journey, covering
 - Frankfurter Currency API
 - NASA APOD API
 - Open Trivia DB API
+
+## Gemini API Setup
+
+The AI bilingual quiz requires a Gemini API key. Keep the key in an
+environment variable and never commit it to Git.
+
+```bash
+read -s -p "Enter Gemini API key: " GEMINI_API_KEY
+echo
+export GEMINI_API_KEY
+python app.py
 
 ## Project Structure
 

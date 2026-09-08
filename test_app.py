@@ -123,3 +123,27 @@ def test_trivia_rejects_invalid_category(client):
     assert response.status_code == 400
     assert data["status"] == "error"
     assert "invalid trivia category" in data["message"].lower()
+def test_ai_trivia_interface_is_on_dashboard(client):
+    response = client.get("/")
+
+    assert response.status_code == 200
+    assert b"AI Bilingual Quiz Generator" in response.data
+    assert b'id="ai-trivia-topic"' in response.data
+    assert b'id="ai-trivia-result"' in response.data
+    assert b'data-api="ai-trivia"' in response.data
+
+
+def test_ai_trivia_rejects_empty_topic(client):
+    response = client.post(
+        "/api/ai-trivia",
+        json={
+            "topic": "",
+            "difficulty": "easy",
+            "count": 3,
+        },
+    )
+    data = response.get_json()
+
+    assert response.status_code == 400
+    assert data["status"] == "error"
+    assert "quiz topic" in data["message"].lower()

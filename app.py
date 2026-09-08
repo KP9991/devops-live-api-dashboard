@@ -7,10 +7,29 @@ from urllib.parse import quote
 import requests
 from flask import Flask, jsonify, render_template, request
 
+from google import genai
+from google.genai import errors
+from pydantic import BaseModel, Field
+
 app = Flask(__name__)
 
 REQUEST_TIMEOUT = 10
 
+GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-3.5-flash")
+
+
+class AITriviaQuestion(BaseModel):
+    question_en: str
+    question_hi: str
+    options_en: list[str] = Field(min_length=4, max_length=4)
+    options_hi: list[str] = Field(min_length=4, max_length=4)
+    correct_index: int = Field(ge=0, le=3)
+    explanation_en: str
+    explanation_hi: str
+
+
+class AITriviaQuiz(BaseModel):
+    questions: list[AITriviaQuestion]
 
 def api_error(message, status_code=502):
     return jsonify(
@@ -555,6 +574,121 @@ def trivia():
         count=len(questions),
         questions=questions,
     )
+
+@app.route("/api/ai-trivia", methods=["POST"])
+def ai_trivia():
+    if not os.getenv("GEMINI_API_KEY"):
+        return api_error(
+            "Gemini API key is not configured.",
+            503,
+        )
+
+    payload = request.get_json(silent=True) or {}
+
+    topic = str(payload.get("topic", "")).strip()
+    difficulty = str(
+        payload.get("difficulty", "medium")
+    ).strip().lower()
+
+    try:
+        question_count = int(payload.get("count", 5))
+    except (TypeError, ValueError):
+        return api_error(
+            "Question count must be a number.",
+            400,
+        )
+
+    if not topic:
+        return api_error(
+            "Please provide a quiz topic.",
+            400,
+        )
+
+    if len(topic) > 80:
+        return api_error(
+            "Quiz topic must not exceed 80 characters.",
+            400,
+        )
+
+    if difficulty not in {"easy", "medium", "hard"}:
+        return api_error(
+            "Difficulty must be easy, medium or hard.",
+            400,
+        )
+
+    if question_count < 3 or question_count > 10:
+        return api_error(
+            "Question count must be between 3 and 10.",
+            400,
+        )
+
+    prompt = f"""
+Create exactly {question_count} fact-based multiple-choice quiz
+questions about: {topic}.
+
+Difficulty: {difficulty}.
+
+Requirements:
+- Every question must be provided in English and natural Hindi.
+- Hindi text must use Devanagari script.
+- Provide exactly four answer options in both languages.
+- English and Hindi options must have identical ordering.
+- correct_index must be 0, 1, 2 or 3.
+- Include a short explanation in English and Hindi.
+- Avoid ambiguous questions.
+- Avoid opinions and unverifiable claims.
+- Avoid questions whose answer can change frequently.
+- Do not repeat questions within this quiz.
+"""
+
+    try:
+        client = genai.Client()
+
+        response = client.models.generate_content(
+            model=GEMINI_MODEL,
+            contents=prompt,
+            config={
+                "response_mime_type": "application/json",
+                "response_schema": AITriviaQuiz,
+            },
+        )
+
+        quiz = AITriviaQuiz.model_validate_json(response.text)
+
+        if len(quiz.questions) != question_count:
+            return api_error(
+                "Gemini returned an unexpected number of questions.",
+                502,
+            )
+
+        return jsonify(
+            status="success",
+            provider="Google Gemini",
+            model=GEMINI_MODEL,
+            topic=topic,
+            difficulty=difficulty,
+            count=len(quiz.questions),
+            questions=[
+                question.model_dump()
+                for question in quiz.questions
+            ],
+        )
+
+    except errors.APIError:
+        app.logger.exception("Gemini API request failed")
+
+        return api_error(
+            "Gemini could not generate the quiz. Please try again.",
+            502,
+        )
+
+    except (ValueError, TypeError):
+        app.logger.exception("Gemini returned invalid quiz data")
+
+        return api_error(
+            "Gemini returned an invalid quiz response.",
+            502,
+        )
 if __name__ == "__main__":
     app.run(
         host="0.0.0.0",

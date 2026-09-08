@@ -354,3 +354,171 @@ footer {
     font-size: 24px;
     font-weight: 800;
 }
+/* Dashboard navigation and organized sections */
+
+html {
+    scroll-behavior: smooth;
+}
+
+.dashboard-nav {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+    max-width: 1200px;
+    margin: 0 auto 24px;
+    padding: 14px;
+    border: 1px solid rgba(104, 186, 255, 0.25);
+    border-radius: 14px;
+    background: rgba(15, 23, 42, 0.88);
+}
+
+.dashboard-nav a {
+    padding: 9px 14px;
+    border: 1px solid rgba(104, 186, 255, 0.35);
+    border-radius: 999px;
+    color: #dbeafe;
+    font-size: 14px;
+    font-weight: 700;
+    text-decoration: none;
+    transition:
+        background 0.2s ease,
+        border-color 0.2s ease,
+        transform 0.2s ease;
+}
+
+.dashboard-nav a:hover {
+    border-color: #68baff;
+    background: rgba(104, 186, 255, 0.18);
+    transform: translateY(-2px);
+}
+
+.dashboard-section-heading {
+    grid-column: 1 / -1;
+    margin-top: 20px;
+    padding: 18px 20px;
+    border-left: 5px solid #68baff;
+    border-radius: 10px;
+    background:
+        linear-gradient(
+            90deg,
+            rgba(104, 186, 255, 0.18),
+            rgba(104, 186, 255, 0.03)
+        );
+    scroll-margin-top: 25px;
+}
+
+.dashboard-section-heading h2 {
+    margin: 0 0 5px;
+    color: #ffffff;
+    font-size: 23px;
+}
+
+.dashboard-section-heading p {
+    margin: 0;
+    color: #b8c7dc;
+    line-height: 1.5;
+}
+
+@media (max-width: 600px) {
+    .dashboard-nav {
+        margin-right: 16px;
+        margin-left: 16px;
+    }
+
+    .dashboard-nav a {
+        flex: 1 1 45%;
+        text-align: center;
+    }
+
+    .dashboard-section-heading h2 {
+        font-size: 20px;
+    }
+}
+/* Gemini AI bilingual quiz */
+
+.ai-trivia-card label {
+    display: block;
+    margin: 14px 0 6px;
+    color: #dbeafe;
+    font-weight: 700;
+}
+
+.ai-trivia-card input,
+.ai-trivia-card select {
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.ai-trivia-card input {
+    padding: 11px 12px;
+    border: 1px solid rgba(104, 186, 255, 0.35);
+    border-radius: 8px;
+    color: #ffffff;
+    background: rgba(15, 23, 42, 0.9);
+}
+
+.ai-trivia-progress {
+    margin-bottom: 12px;
+    color: #93c5fd;
+    font-weight: 700;
+}
+
+.ai-trivia-question {
+    margin-bottom: 16px;
+    color: #ffffff;
+    line-height: 1.6;
+    white-space: pre-line;
+}
+
+.ai-trivia-options {
+    display: grid;
+    gap: 10px;
+}
+
+.ai-trivia-answer {
+    width: 100%;
+    text-align: left;
+    white-space: pre-line;
+}
+
+.ai-trivia-answer.correct {
+    border-color: #22c55e;
+    background: rgba(34, 197, 94, 0.25);
+}
+
+.ai-trivia-answer.wrong {
+    border-color: #ef4444;
+    background: rgba(239, 68, 68, 0.25);
+}
+
+.ai-trivia-explanation {
+    margin-top: 16px;
+    padding: 13px;
+    border-left: 4px solid #fbbf24;
+    border-radius: 8px;
+    background: rgba(251, 191, 36, 0.12);
+    line-height: 1.6;
+    white-space: pre-line;
+}
+
+.ai-trivia-next {
+    margin-top: 16px;
+}
+
+.ai-trivia-final-title {
+    color: #ffffff;
+}
+
+.ai-trivia-final-score {
+    color: #86efac;
+    font-size: 20px;
+    font-weight: 700;
+}
+
+.ai-disclaimer {
+    display: block;
+    margin-top: 14px;
+    color: #94a3b8;
+    line-height: 1.5;
+}
