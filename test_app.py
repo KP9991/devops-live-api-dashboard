@@ -133,7 +133,8 @@ def test_ai_trivia_interface_is_on_dashboard(client):
     assert b'data-api="ai-trivia"' in response.data
 
 
-def test_ai_trivia_rejects_empty_topic(client):
+def test_ai_trivia_rejects_empty_topic(client, monkeypatch):
+    monkeypatch.setenv("GEMINI_API_KEY", "test-key")
     response = client.post(
         "/api/ai-trivia",
         json={
